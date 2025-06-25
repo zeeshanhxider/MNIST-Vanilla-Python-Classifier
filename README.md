@@ -98,4 +98,4 @@ This repository contains a fully implemented feedforward neural network built fr
 
 ---
 
-**Made with lots of complicated maths and 🧡 by zeeshan**
+## Made with lots of complicated maths and 🧡 by zeeshan
