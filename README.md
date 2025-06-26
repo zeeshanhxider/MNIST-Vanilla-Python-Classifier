@@ -1,5 +1,5 @@
 
-# Neural Network Classifiers for Fashion MNIST & MNIST
+# Neural Network Classifiers for Fashion & Digit MNIST Datasets
 
 This repository presents two feedforward neural networks implemented from scratch using purely **NumPy** and **Python** without the aid of any mordern liberaries like PyTorch or TensorFlow. The primary focus is on the Fashion MNIST classifier, followed by the MNIST digit classifier. Each model incorporates modern techniques such as regularization, dropout, mini-batch training, and tailored initialization.
 
