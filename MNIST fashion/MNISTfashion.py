@@ -9,7 +9,9 @@ class Layer_Dense:
                  weight_regularizer_l1=0, weight_regularizer_l2=0, 
                  bias_regularizer_l1=0, bias_regularizer_l2=0):
         # Initialize weights and biases
-        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        # Xavier-Uniform initialization
+        limit = np.sqrt(6.0 / (n_inputs + n_neurons))
+        self.weights = np.random.uniform(-limit, limit, size=(n_inputs, n_neurons))
         self.biases = np.zeros((1, n_neurons))
         # Set regularization strength
         self.weight_regularizer_l1 = weight_regularizer_l1
@@ -53,6 +55,29 @@ class Layer_Dense:
 
         # Gradient on values
         self.dinputs = np.dot(dvalues, self.weights.T)
+
+# Dropout layer
+# This layer randomly sets a fraction of input units to 0 at each update during training time
+class Layer_Dropout:
+    # Initialize the dropout layer
+    def __init__(self, rate):
+        # Store the dropout rate, invert it to get the success rate
+        # For example, for a dropout of 0.1, we need a success rate of 0.9
+        self.rate = 1 - rate
+
+    # Forward pass
+    def forward(self, inputs):
+        # Save input values
+        self.inputs = inputs
+        # Generate and save the scaled binary mask
+        self.binary_mask = np.random.binomial(1, self.rate, size=inputs.shape) / self.rate
+        # Apply mask to output values
+        self.output = inputs * self.binary_mask
+
+    # Backward pass
+    def backward(self, dvalues):
+        # Gradient on values
+        self.dinputs = dvalues * self.binary_mask        
 
 # ReLU activation
 class Activation_ReLU:
@@ -200,12 +225,13 @@ X_train = X_train.reshape(-1, 28 * 28)
 X_test = X_test.astype('float32') / 255
 X_test = X_test.reshape(-1, 28 * 28)
 
-# Create Dense layer with 784 inputs and 128 outputs
-dense1 = Layer_Dense(784, 128, weight_regularizer_l2=1e-4)
+dense1 = Layer_Dense(784, 300, weight_regularizer_l2=1e-4)
 activation1 = Activation_ReLU()
-dense2 = Layer_Dense(128, 64, weight_regularizer_l2=1e-4)
+dropout1 = Layer_Dropout(0.2)
+dense2 = Layer_Dense(300, 100, weight_regularizer_l2=1e-4)
 activation2 = Activation_ReLU()
-dense3 = Layer_Dense(64, 10)
+dropout2 = Layer_Dropout(0.2)
+dense3 = Layer_Dense(100, 10)
 loss_activation = Activation_Softmax_Loss_CategoricalCrossentropy()
 
 optimizer = Optimizer_Adam(learning_rate=0.001, decay=1e-5)
@@ -215,40 +241,59 @@ train_accuracies = []
 test_accuracies = []
 losses = []
 
-for epoch in range(1001):
-    # forward pass on training data
-    dense1.forward(X_train)
-    activation1.forward(dense1.output)
-    dense2.forward(activation1.output)
-    activation2.forward(dense2.output)
-    dense3.forward(activation2.output)
-    # calculate both  data and regularization loss
-    data_loss = loss_activation.forward(dense3.output, y_train)
-    regularization_loss = loss_activation.loss.regularization_loss(dense1) + loss_activation.loss.regularization_loss(dense2) + loss_activation.loss.regularization_loss(dense3)
-    loss = data_loss + regularization_loss
+batch_size = 64
+n_samples  = X_train.shape[0]
+steps_per_epoch = n_samples // batch_size
+num_epochs = 26
 
-    # accuracy calculation
-    predictions = np.argmax(loss_activation.output, axis=1)
-    y_labels = np.argmax(y_train, axis=1) if len(y_train.shape) == 2 else y_train
-    accuracy = np.mean(predictions == y_labels)
+for epoch in range(num_epochs + 1):
+    # Shuffle at start of epoch 
+    perm = np.random.permutation(n_samples)
+    X_shuf, y_shuf = X_train[perm], y_train[perm]
 
-    # Save metrics for plotting
-    train_accuracies.append(accuracy)
-    losses.append(loss)
+    for step in range(steps_per_epoch):
+        # Mini-batch slice 
+        start = step * batch_size
+        end   = start + batch_size
+        X_batch = X_shuf[start:end]
+        y_batch = y_shuf[start:end]
+        # forward pass on training data
+        dense1.forward(X_batch)
+        activation1.forward(dense1.output)
+        dropout1.forward(activation1.output)
+        dense2.forward(dropout1.output)
+        activation2.forward(dense2.output)
+        dropout2.forward(activation2.output)
+        dense3.forward(dropout2.output)
+        # calculate both  data and regularization loss
+        data_loss = loss_activation.forward(dense3.output, y_batch)
+        regularization_loss = loss_activation.loss.regularization_loss(dense1) + loss_activation.loss.regularization_loss(dense2) + loss_activation.loss.regularization_loss(dense3)
+        loss = data_loss + regularization_loss
 
-    # backward pass
-    loss_activation.backward(loss_activation.output, y_train)
-    dense3.backward(loss_activation.dinputs)
-    activation2.backward(dense3.dinputs)
-    dense2.backward(activation2.dinputs)
-    activation1.backward(dense2.dinputs)
-    dense1.backward(activation1.dinputs)
+        # accuracy calculation
+        predictions = np.argmax(loss_activation.output, axis=1)
+        y_labels = np.argmax(y_batch, axis=1) if y_batch.ndim == 2 else y_batch
+        accuracy = np.mean(predictions == y_labels)
 
-    optimizer.pre_update_params()
-    optimizer.update_params(dense1)
-    optimizer.update_params(dense2)
-    optimizer.update_params(dense3)
-    optimizer.post_update_params()
+        # Save metrics for plotting
+        train_accuracies.append(accuracy)
+        losses.append(loss)
+
+        # backward pass
+        loss_activation.backward(loss_activation.output, y_batch)
+        dense3.backward(loss_activation.dinputs)
+        dropout2.backward(dense3.dinputs)
+        activation2.backward(dropout2.dinputs)
+        dense2.backward(activation2.dinputs)
+        dropout1.backward(dense2.dinputs)
+        activation1.backward(dropout1.dinputs)
+        dense1.backward(activation1.dinputs)
+
+        optimizer.pre_update_params()
+        optimizer.update_params(dense1)
+        optimizer.update_params(dense2)
+        optimizer.update_params(dense3)
+        optimizer.post_update_params()
 
     # evaluate on test set
     dense1.forward(X_test)
@@ -256,13 +301,13 @@ for epoch in range(1001):
     dense2.forward(activation1.output)
     activation2.forward(dense2.output)
     dense3.forward(activation2.output)
-    loss_activation.forward(dense3.output, y_test)
+    test_loss = loss_activation.forward(dense3.output, y_test)
     test_predictions = np.argmax(loss_activation.output, axis=1)
     test_acc = np.mean(test_predictions == y_test)
     test_accuracies.append(test_acc)
 
-    if epoch % 100 == 0:
-        print(f'epoch: {epoch}, acc: {accuracy:.3f}, loss: {loss:.3f}, test_acc: {test_acc:.3f}')
+    if epoch % 2 == 0:
+        print(f'epoch: {epoch}, acc: {accuracy:.3f}, loss: {loss:.3f}, test_acc: {test_acc:.3f}, test_loss: {test_loss:.3f}')
 
 # after training plot the accuracy and loss
 import matplotlib.pyplot as plt

@@ -23,17 +23,24 @@ class Activation_Softmax:
 with open('MNISTfashion.pkl', 'rb') as f:
     model_data = pickle.load(f)
 
-dense1 = Layer_Dense(784, 128)
+dense1 = Layer_Dense(784, 300)
 dense1.weights = model_data['dense1_weights']
 dense1.biases = model_data['dense1_biases']
 
 activation1 = Activation_ReLU()
 
-dense2 = Layer_Dense(128, 10)
+dense2 = Layer_Dense(300, 100)
 dense2.weights = model_data['dense2_weights']
 dense2.biases = model_data['dense2_biases']
 
-activation2 = Activation_Softmax()
+activation2 = Activation_ReLU()
+
+dense3 = Layer_Dense(100, 10)
+dense3.weights = model_data['dense3_weights']
+dense3.biases = model_data['dense3_biases']
+
+activation3 = Activation_Softmax()
+
 
 # Fashion MNIST label names
 label_names = [
@@ -65,8 +72,10 @@ def predict(path):
     activation1.forward(dense1.output)
     dense2.forward(activation1.output)
     activation2.forward(dense2.output)
+    dense3.forward(activation2.output)
+    activation3.forward(dense3.output)
 
-    probs = activation2.output[0]
+    probs = activation3.output[0]
     predicted_class = np.argmax(probs)
     confidence = probs[predicted_class] * 100
 
