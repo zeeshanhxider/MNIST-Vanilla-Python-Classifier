@@ -2,9 +2,10 @@ import numpy as np
 import pickle
 from PIL import Image
 
+# coding only the forward pass of the neural network
 class Layer_Dense:
     def __init__(self, n_inputs, n_neurons):
-        self.weights = np.zeros((n_inputs, n_neurons))  # placeholders
+        self.weights = np.zeros((n_inputs, n_neurons))  
         self.biases = np.zeros((1, n_neurons))
     def forward(self, inputs):
         self.output = np.dot(inputs, self.weights) + self.biases
@@ -48,10 +49,13 @@ def load_and_prepare_image(path):
     avg_pixel = np.mean(img_array)
     if avg_pixel > 127:                           # If background is light 
         img_array = 255 - img_array               # Invert
+        img = Image.fromarray(255 - np.array(img))
 
     img_array /= 255.0                            # Normalize to 0–1
     img_array = img_array.reshape(1, 784)         # Flatten
+    img.show()
     return img_array
+    
 
 def predict(path):
     x = load_and_prepare_image(path)
@@ -72,6 +76,6 @@ def predict(path):
     for i, prob in enumerate(probs):
         print(f"  {label_names[i]:<12}: {prob * 100:.2f}%")
 
-#Paste your image path here:
+#Paste your image path here
 image_path = 'item.png'
 predict(image_path)
