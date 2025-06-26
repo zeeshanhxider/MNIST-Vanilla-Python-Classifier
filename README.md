@@ -1,55 +1,91 @@
 
-# MNIST & Fashion MNIST Neural Network from Scratch 
+# Neural Network Classifiers for Fashion MNIST & MNIST
 
-This repository contains a fully implemented feedforward neural network built from scratch in Python using only NumPy. The network is trained and tested on the MNIST digits dataset and the Fashion MNIST dataset. No high-level deep learning libraries are used for the core training loops or architecture.
-
-## 🧠 Architecture & Design
-
-| Layer            | Units | Activation          |
-| ---------------- | ----- | ------------------- |
-| Input (Flatten)  | 784   | —                   |
-| Hidden           | 128   | ReLU                |
-| Hidden           | 64    | ReLU                |
-| Output           | 10    | Softmax             |
-
-- **Loss:** Categorical Cross-Entropy  
-- **Optimizer:** Adam  
-- **Regularization:** L2
-- **Epochs:** 1001  
-- **Metrics:** Training Loss, Training & Test Accuracy  
+This repository presents two feedforward neural networks implemented from scratch using purely **NumPy** and **Python** without the aid of any mordern liberaries like PyTorch or TensorFlow. The primary focus is on the Fashion MNIST classifier, followed by the MNIST digit classifier. Each model incorporates modern techniques such as regularization, dropout, mini-batch training, and tailored initialization.
 
 ---
 
-## 📈 Results
+## 📈 Summary of Results
 
-- **MNIST Digits**  
-  - Training Accuracy: **97.4%**  
-  - Test Accuracy: **99.6%**  
-
-- **Fashion MNIST**  
-  - Training Accuracy: **91.1%**  
-  - Test Accuracy: **87.4%**  
+| Dataset         | Training Accuracy | Test Accuracy |
+| --------------- | ----------------- | ------------- |
+| Fashion MNIST   | 90.1%             | 89.0%         |
+| MNIST Digits    | 99.9%             | 97.8%         |
 
 ---
 
-## Directory Structure
+## 1. Fashion MNIST Classifier
+
+A three-layer network enhanced with Xavier initialization, dropout, and L2 regularization to classify 10 categories of clothing items.
+
+### Architecture
+
+| Layer       | Units | Activation | Initialization         | Regularization        | Dropout |
+| ----------- | ----- | ---------- | ---------------------- | --------------------- | ------- |
+| **Input**   | 784   | —          | —                      | —                     | —       |
+| **Hidden 1**| 300   | ReLU       | Xavier‑Uniform         | L2 (λ = 1e‑4)         | 0.2     |
+| **Hidden 2**| 100   | ReLU       | Xavier‑Uniform         | L2 (λ = 1e‑4)         | 0.2     |
+| **Output**  | 10    | Softmax    | —                      | —                     | —       |
+
+### Training Configuration
+- **Loss Function**: Categorical Cross-Entropy + L2 regularization  
+- **Optimizer**: Adam (lr = 0.001, β₁ = 0.9, β₂ = 0.999, ε = 1e‑7, decay = 1e‑5)  
+- **Batch Size**: 64  
+- **Epochs**: 26  
+- **Data Shuffling**: Random permutation each epoch  
+
+---
+
+## 2. MNIST Digit Classifier
+
+A three-layer dense network designed for handwritten digit recognition, incorporating L2 regularization.
+
+### Architecture
+
+| Layer       | Units | Activation | Initialization | Regularization        | Dropout |
+| ----------- | ----- | ---------- | -------------- | --------------------- | ------- |
+| **Input**   | 784   | —          | —              | —                     | —       |
+| **Hidden 1**| 128   | ReLU       | Random (0.01σ) | L2 (λ = 1e‑4)         | —       |
+| **Hidden 2**| 64    | ReLU       | Random (0.01σ) | L2 (λ = 1e‑4)         | —       |
+| **Output**  | 10    | Softmax    | —              | —                     | —       |
+
+### Training Configuration
+- **Loss Function**: Categorical Cross-Entropy + L2 regularization  
+- **Optimizer**: Adam (lr = 0.001, β₁ = 0.9, β₂ = 0.999, ε = 1e‑7, decay = 1e‑5)  
+- **Batching**: Full-batch gradient descent  
+- **Epochs**: 1,001  
+
+---
+
+## 📂 Directory Structure
 ```
-├── digit/
-│   ├── train_digit.py        # Training implementation for MNIST digits
-│   ├── infer_digit.py        # Inference script for digit prediction
-│   ├── MNISTdigit.pkl        # Trained model parameters for digits
-│   └── digit.png             # Sample input image for inference
-├── fashion/
-│   ├── train_fashion.py      # Training implementation for Fashion MNIST
-│   ├── infer_fashion.py      # Inference script for fashion item prediction
-│   ├── FashionMNIST.pkl      # Trained model parameters for fashion
-│   └── fashion.png           # Sample input image for inference
+├── Digit MNIST/
+│   ├── digit_sample.png                  # Sample image for testing
+│   ├── DigitMNIST_inference.py           # Inference script for digit prediction
+│   ├── DigitMNIST_model_params.pkl       # Trained model parameters for digits
+│   └── DigitMNIST_model.py               # Training implementation for MNIST digits
+├── Fashion MNIST/
+│   ├── fashion_sample.png                # Sample image for testing
+│   ├── FashionMNIST_inference.py         # Inference script for digit prediction
+│   ├── FashionMNIST_model_params.pkl     # Trained model parameters for digits
+│   └── FashionMNIST_model.py             # Training implementation for MNIST digits
+├── LICENSE                   # Project license
 └── README.md                 # Project documentation
+
 ```
 
 ---
 
-## 🚀 How to run it on your own computer
+## 🛠️ Dependencies
+- **Python 3.x**  
+- **NumPy**  
+- **Matplotlib** (for plots)  
+- **Pillow** (for image processing)
+- **TensorFlow** (for loading MNIST datasets)
+
+---
+
+## 👨‍💻 How to run it on your own computer
 
 1. **Clone Repository**  
    ```bash
@@ -62,41 +98,32 @@ This repository contains a fully implemented feedforward neural network built fr
    pip install numpy matplotlib pillow tensorflow
    ```
 
-3. **Train the Model**  
+3. **Train the Model (Not necessary since pre-trained model already included)**  
    - **Digits:**  
      ```bash
-     cd MNIST digit
-     python MNISTdigit.py
+     cd "Digit MNIST"
+     python DigitMNIST_model.py
      ```
    - **Fashion:**  
      ```bash
-     cd MNIST fashion
-     python MNISTfashion.py
+     cd "Fashion MNIST"
+     python FashionMNIST_model.py
      ```
 
 4. **Load Testing Images**  
    - **Digits:**  
-   Save your test image as "digit.png" in the MNIST digit directory.
+   Save your test image as "digit_sample.png" in the MNIST digit directory.
    - **Fashion:**  
-   Save your test image as "item.png" in the MNIST fashion directory.
+   Save your test image as "fashion_sample.png" in the MNIST fashion directory.
 
 5. **Run Inference**  
    ```bash
    # For Digit Prediction
-   python MNISTdigittest.py 
+   python DigitMNIST_model.py
 
    # For Fashion Prediction
-   python MNISTfashiontest.py 
+   python FashionMNIST_model.py 
    ```
-
----
-
-
-## 🛠️ Dependencies
-- **Python 3.x**  
-- **NumPy**  
-- **Matplotlib** (for plots)  
-- **Pillow** (for image processing)
 
 ---
 
