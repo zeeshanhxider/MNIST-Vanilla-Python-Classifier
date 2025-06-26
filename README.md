@@ -9,10 +9,12 @@ This repository contains a fully implemented feedforward neural network built fr
 | ---------------- | ----- | ------------------- |
 | Input (Flatten)  | 784   | —                   |
 | Hidden           | 128   | ReLU                |
+| Hidden           | 64    | ReLU                |
 | Output           | 10    | Softmax             |
 
 - **Loss:** Categorical Cross-Entropy  
 - **Optimizer:** Adam  
+- **Regularization:** L2
 - **Epochs:** 1001  
 - **Metrics:** Training Loss, Training & Test Accuracy  
 
