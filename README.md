@@ -116,6 +116,8 @@ A three-layer dense network designed for handwritten digit recognition, incorpor
    - **Fashion:**  
    Save your test image as "fashion_sample.png" in the MNIST fashion directory.
 
+**⚠️ Note**: *These models were trained exclusively on the original MNIST and Fashion MNIST datasets. For best results, use test images from these datasets. Custom images may lead to reduced accuracy—especially for Fashion MNIST—unless they closely match the dataset in size, format (28×28 grayscale), and content.*
+
 5. **Run Inference**  
    ```bash
    # For Digit Prediction
